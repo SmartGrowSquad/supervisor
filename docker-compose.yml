@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  supervizor:
+    container_name: supervizor
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_USER: ${DB_USER}
+      DB_PASS: ${DB_PASS}
+      DB_NAME: ${DB_NAME}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - supervizor_network
+    depends_on:
+      - mysql
+  mysql:
+    container_name: mysql
+    image: mysql:8.3
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_PASS}
+      - MYSQL_DATABASE= ${DB_NAME}
+    ports:
+      - "3306:3306"
+    networks:
+      - supervizor_network
+networks:
+  supervizor_network:
+    driver: bridge

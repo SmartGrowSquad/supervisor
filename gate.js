@@ -1,9 +1,17 @@
+/**
+ * POST/plants     어반이에서 판매 가능한 작물을 등록함
+ * POST/env        작동하고 있는 어반이의 환경 정보를 가져옴
+ * GET/urbani/:id  사용자가 관리하는 어반의 상세 정보를 가져옴
+ * 
+ */
+
 const http = require("http");
 const url = require("url");
 const qureystring = require("querystring");
-const tcpClient = require("./Distributor/client");
+const tcpClient = require("./client");
 
 var mapClients = {};
+// 요청 URL 정보를 저장합니다.
 var mapUrls = {};
 var mapResponse = {};
 var mapRR = {};
@@ -15,7 +23,7 @@ var server = http.createServer((req, res) => {
   var pathname = uri.pathname;
 
   //method: POST and PUT
-  if (method == "POST" || method == "PUT") {
+  if (method === "POST" || method === "PUT") {
     var body = "";
 
     req.on("data", (data) => {
@@ -44,7 +52,7 @@ var server = http.createServer((req, res) => {
     method: "POST",
     key: 0,
     params: {
-      part: 8000,
+      port: 8001,
       name: "gate", 
       urls: []
     }
@@ -53,7 +61,7 @@ var server = http.createServer((req, res) => {
   var isConnectedDistributor = false; 
 
   this.clientDistributor = new tcpClient(
-    "127.0.0.1",
+    process.env.BACK_CONTAINER_NAME,
     9000,
     (options) => {
       isConnectedDistributor = true;
@@ -92,7 +100,18 @@ function onRequest(res, method, pathname, params) {
     mapResponse[index] = res;
     index++;
     
-    // 라운드 로빈
+    // Round Robin 방식으로 클라이언트를 선택합니다.
+    // 클라이언트의 수가 많아지면 부하가 발생할 수 있습니다.
+    // 이를 해결하기 위해서는 부하 분산 로직을 추가해야 합니다.
+
+    /* 
+      mpaRR[0] = 0이라고 합니다.
+      그렇다면 mapRR[0] % client.length는 0 % client.length가 됩니다.
+      그러면 client[0]이 선택됩니다.
+      그 다음에는 mapRR[0] = 1이 됩니다.
+      그러면 mapRR[0] % client.length는 1 % client.length가 됩니다.
+      그러면 client[1]이 선택됩니다.
+    */
     if(mapRR[key] == null) {
       mapRR[key] = 0;
     }
@@ -101,7 +120,7 @@ function onRequest(res, method, pathname, params) {
   }
 }
 
-function onReadClient(packet) {
+function onReadClient(options, packet) {
   console.log("onReadClient", packet);
   mapResponse[packet.key].writeHead(200, {
     "Content-Type": "application/json"
@@ -110,6 +129,37 @@ function onReadClient(packet) {
   delete mapResponse[packet.key];
 } 
 
+// Distributor로부터 접속 가능한 서비스의 정보를 받습니다.
+/**
+ * Distributor로부터 다음 데이터를 받습니다.
+ * data: {
+ *  uri: "/distributes",
+ *  method: "GET",
+ *  key: 0,
+ *  params: [
+ *    {
+ *    part: 8001,
+ *    name: "gate",
+ *    urls: [
+ *    "POST/login",
+ *    "POST/logout",
+ *    "POST/register",
+ *    "POST/inquiry",
+ *    "POST/order",
+ *    "POST/orderlist",
+ *    "POST/product",
+ *    "POST/products",
+ *    "POST/review",
+ *    "POST/reviews",
+ *    "POST/update",
+ *     ...
+ *    ]
+ *  },
+ * ...
+ * 
+ * }
+ * 
+ */
 function onDistribute(data) {
   for(var n in data.params) {
     var node = data.params[n];
@@ -130,6 +180,10 @@ function onDistribute(data) {
         if(mapUrls[key] == null) {
           mapUrls[key] = [];
         }
+
+        // mapUrls[key]에 클라이언트 정보를 저장합니다.
+        //각 URL마다 해당 URL을 담당하는 클라이언트가 여러 개일 수 있습니다.
+        //즉, 하나의 서비스 인스턴스를 여러 개 띄워서 부하를 분산할 수 있습니다.
         mapUrls[key].push(client);
       }
       

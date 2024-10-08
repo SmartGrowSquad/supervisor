@@ -1,26 +1,4 @@
 var map = {};
-/**
- * map: 노드의 정보를 저장하는 변수
- * map[key]: 노드의 정보를 저장하는 변수
- * map[key].socket: 노드의 소켓 정보
- * map[key].info: 노드의 정보
- * map[key].info.host: 노드의 호스트 정보
- * ex)
- * map = {
- *  "172.0.0.1:9000": {
- *    socket: socket,
- *    info: {
- *      name: "distributor",
- *      port: 9000,
- *      urls:[],
- *     host: "", 
- *    },
- *  },
- * ...
- * 
- * }
- */
-
 
 class distributor extends require('./server.js') {
   constructor() {
