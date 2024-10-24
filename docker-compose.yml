@@ -13,19 +13,7 @@ services:
     ports:
       - "8000:8000"
     networks:
-      - supervizor_network
-    depends_on:
-      - mysql
-  mysql:
-    container_name: mysql
-    image: mysql:8.3
-    environment:
-      - MYSQL_ROOT_PASSWORD=${DB_PASS}
-      - MYSQL_DATABASE= ${DB_NAME}
-    ports:
-      - "3306:3306"
-    networks:
-      - supervizor_network
+      - ugh_backnetwork
 networks:
-  supervizor_network:
-    driver: bridge
+  ugh_backnetwork:
+    external: true

@@ -1,14 +1,14 @@
 'use district';
 
-const business = require('../service/plantGrowthService');
+const business = require('../service/farmClimateService');
 const cluster = require('cluster');
 
-class plantGrowthController extends require('../server.js') {
+class farmClimateController extends require('../server.js') {
   constructor() {
     super(
-      "plant", 
-      process.argv[2] ? Number(process.argv[2]) : 9030,
-      ["POST/plant", "GET/plant"]
+      "climate", 
+      process.argv[2] ? Number(process.argv[2]) : 9020,
+      ["POST/saveclimate", "POST/getclimate"]
     );
 
     this.connectToDistributor(process.env.BACK_CONTAINER_NAME, 9000, (data) => {
@@ -33,7 +33,7 @@ if (cluster.isMaster) {
     cluster.fork();
   })
 } else {
-  new plantGrowthController();
+  new farmClimateController();
 }
 
 

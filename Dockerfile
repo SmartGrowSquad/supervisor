@@ -1,15 +1,18 @@
-FROM node:18.20.4-alpine3.20 as builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
+FROM node:18.20.4
 
-FROM node:18.20.4-alpine3.20
 WORKDIR /app
-COPY --from=builder /app/node_modules /node_modules
+
+COPY package*.json ./
+
+RUN npm install
+
 ADD /scripts/start.sh /start.sh
+
 RUN chmod +x /start.sh
-COPY . .
+
+COPY /supervisor  .
+
+RUN node train.js
 
 EXPOSE 8000
 

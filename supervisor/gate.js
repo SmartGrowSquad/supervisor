@@ -122,6 +122,7 @@ function onRequest(res, method, pathname, params) {
 
 function onReadClient(options, packet) {
   console.log("onReadClient", packet);
+  
   mapResponse[packet.key].writeHead(200, {
     "Content-Type": "application/json"
   });

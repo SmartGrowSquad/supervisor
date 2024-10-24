@@ -1,14 +1,13 @@
 'use district';
-
-const business = require('../service/farmClimateService');
+const business = require('../service/qrService');
 const cluster = require('cluster');
 
-class farmClimateController extends require('../server.js') {
+class qrController extends require('../server.js') {
   constructor() {
     super(
-      "farm_climate", 
-      process.argv[2] ? Number(process.argv[2]) : 9020,
-      ["POST/register", "POST/getUrbaniData"]
+      "qr",
+      process.argv[2] ? Number(process.argv[2]) : 9050,
+      ["POST/validate"]
     );
 
     this.connectToDistributor(process.env.BACK_CONTAINER_NAME, 9000, (data) => {
@@ -25,15 +24,11 @@ class farmClimateController extends require('../server.js') {
 
 if (cluster.isMaster) {
 
-  // 자식 프로세스 실행
   cluster.fork();
-  
   cluster.on("exit", (worker, code, signal) => {
     console.log(`worker ${worker.process.pid} died`);
     cluster.fork();
   })
 } else {
-  new farmClimateController();
+  new qrController();
 }
-
-
